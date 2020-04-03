@@ -429,19 +429,19 @@
 
 
             <div class="container">
-
-                <label for="uname"><b>Username</b></label>
-                <input type="text" pattern="[A-Za-z]{1,}" placeholder="Enter Username" name="uname" class="user_name_password" required>
-
-                <label for="psw"><b>Password</b></label>
-                <input type="password" pattern="[A-Za-z0-9]{1,}" placeholder="Enter Password" name="psw" class="user_name_password" required>
-               
-
-                <button class="w3_style" id="button_login" onclick="user_login()">Login</button>
                 <form id="form_id" onsubmit="update_password_step2()">
-                     <label for="opsw" id="old_password_label"><b>old Password</b></label>
+                    <label for="uname"><b>Username</b></label>
+                    <input type="text" pattern="[A-Za-z]{1,}" placeholder="Enter Username" name="uname" class="user_name_password" required>
 
-                <input type="password" pattern="[A-Za-z0-9]{1,}" id="old_password" placeholder="Enter old Password" name="opsw" required>
+                    <label for="psw"><b>Password</b></label>
+                    <input type="password" pattern="[A-Za-z0-9]{1,}" placeholder="Enter Password" name="psw" class="user_name_password" required>
+
+
+                    <button class="w3_style" id="button_login" onclick="user_login()">Login</button>
+
+                    <label for="opsw" id="old_password_label"><b>old Password</b></label>
+
+                    <input type="password" pattern="[A-Za-z0-9]{1,}" id="old_password" placeholder="Enter old Password" name="opsw" required>
 
                     <input type="submit" class="w3_style button_update">
                 </form>
