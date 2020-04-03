@@ -1,0 +1,459 @@
+﻿<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const DB_connention = axios.create({
+            baseURL:
+                "https://robotdb-a3c9.restdb.io/rest/routeinfo",
+            headers: { "x-apikey": "5e73949509c313436a6a05ed" }
+        });
+        async function main() {
+            const { data } = await DB_connention.get()
+            var select_tag = document.getElementById("stationId")
+            data.forEach(element => {
+                var option_tag = document.createElement('option');
+                option_tag.value = element._id
+                option_tag.innerHTML = element.station_name
+                select_tag.appendChild(option_tag)
+            })
+        }
+
+        async function display_station_content() {
+            var select_tag = document.getElementById("stationId");
+            var record_id_for_url = select_tag.options[select_tag.selectedIndex].value;
+            var div_tag = document.getElementById("station_content")
+            if (record_id_for_url == "-1") {
+                div_tag.innerHTML = ""
+            }
+            else {
+                div_tag.innerHTML = ""
+                const { data } = await DB_connention.get(record_id_for_url)
+                //var field_size = Object.keys(data).length;
+                let flag = 0
+                for (let key in data) {
+                    if (flag == 0) {
+                        flag = 1
+                    }
+                    else {
+                        console.log(key, data[key]);
+                        var br_tag = document.createElement("br")
+                        var textarea_tag = document.createElement("textarea")
+                        var h_tag = document.createElement("h5")
+                        h_tag.textContent = key
+                        textarea_tag.id = key
+                        textarea_tag.value = data[key]
+                        div_tag.append(h_tag, textarea_tag, br_tag)
+                    }
+                }
+                var button_tag = document.createElement("button")
+                var delete_button_tag = document.createElement("button")
+                button_tag.textContent = "update station"
+                button_tag.onclick = update_station
+                delete_button_tag.textContent = "delete station"
+                delete_button_tag.onclick = delete_station
+                div_tag.append(button_tag, delete_button_tag)
+            }
+        }
+        async function update_station() {
+            var select_tag = document.getElementById("stationId")
+            var record_id_for_url = select_tag.options[select_tag.selectedIndex].value;
+            var textarea_station_name = document.getElementById("station_name")
+            var textarea_child_content = document.getElementById("child_content")
+            var textarea_adult_content = document.getElementById("adult_content")
+            const { data } = await DB_connention
+            console.log(data)
+            DB_connention.request({
+                url: record_id_for_url,
+                method: "put",
+                data: {
+                    station_name: textarea_station_name.value,
+                    child_content: textarea_child_content.value,
+                    adult_content: textarea_adult_content.value
+                }
+            });
+            select_tag.options[select_tag.selectedIndex].textContent = textarea_station_name.value
+        }
+        async function delete_station() {
+            var select_tag = document.getElementById("stationId")
+            var record_id_for_url = select_tag.options[select_tag.selectedIndex].value;
+            var div_tag = document.getElementById("station_content")
+            DB_connention.request({
+                url: record_id_for_url,
+                method: "delete"
+            });
+            select_tag.remove(select_tag.selectedIndex)
+            div_tag.innerHTML = ""
+        }
+
+        async function add_new_station() {
+
+        }
+
+        function textarea_for_new_station() {
+            const a = DB_connention.request({
+                method: "post",
+                data: {
+                    station_name: "add info",
+                    child_content: "add info",
+                    adult_content: "add info"
+                }
+            }).then(response => {
+                // returning the data here allows the caller to get it through another .then(...)
+                var select_tag = document.getElementById("stationId");
+                var option_tag = document.createElement('option');
+                option_tag.value = response.data._id
+                option_tag.innerHTML = response.data.station_name
+                option_tag.selected = 'selected'
+                select_tag.appendChild(option_tag)
+                display_station_content()
+            })
+
+            //var option_tag = document.getElementById("default_option")
+            //option_tag.selected = 'selected'
+            //await document.querySelector("input[type=file]").files[0].text()
+        }
+        async function user_login() {
+            let flag = 0
+            let input_user_name_password = document.getElementsByClassName("user_name_password")
+            let temp_user_name_password = []
+            const { data } = await DB_connention.get("https://robotdb-a3c9.restdb.io/rest/login")
+
+            data.forEach(element => {
+                for (let key in element) {
+                    if (flag == 0) {
+                        flag = 1
+                    }
+                    else {
+                        temp_user_name_password.push(element[key])
+                    }
+                }
+                if (temp_user_name_password[0] == input_user_name_password[0].value
+                    && temp_user_name_password[1] == input_user_name_password[1].value) {
+                    document.getElementById("id01").style.display = "none"
+                    document.getElementById("container").style.display = "block"
+                }
+                else {
+                    document.getElementsByClassName("login_error")[0].style.display = 'block'
+                }
+                flag = 0
+            })
+
+
+        }
+
+        async function update_password_step1() {
+            document.getElementById("id01").style.display = "block"
+            //let input_user_name_password = document.getElementsByClassName("user_name_password2")
+            document.getElementsByClassName("button_update")[0].style.display = "block"
+            document.getElementById("button_login").style.display = "none"
+            document.getElementById("old_password_label").style.display = "block"
+            document.getElementById("old_password").style.display = "block"
+            document.getElementsByClassName("user_name_password")[1].value = ""
+
+        }
+
+        async function update_password_step2() {
+            event.preventDefault()
+            const input_user_name_password = document.getElementsByClassName("user_name_password")
+
+            const { data } = await DB_connention.get("https://robotdb-a3c9.restdb.io/rest/login/5e831ec0e332cd260002fae5")
+            if (!(input_user_name_password[0].value == "" || input_user_name_password[1].value == "")) {
+                if (data.password == document.getElementById("old_password").value) {
+                    DB_connention.request({
+                        url: "https://robotdb-a3c9.restdb.io/rest/login/5e831ec0e332cd260002fae5",
+                        method: "put",
+                        data: {
+                            "user name": input_user_name_password[0].value,
+                            password: input_user_name_password[1].value
+                        }
+                    });
+                    document.getElementById("id01").style.display = "none"
+                }
+            }
+            console.log(event, event.target)
+
+        }
+
+
+
+    </script>
+
+
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /* Full-width input fields */
+        input[type=text], input[type=password] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        /* Set a style for all buttons */
+        .w3_style {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 50%;
+        }
+
+            .w3_style:hover, .cancelbtn:hover {
+                opacity: 0.8;
+            }
+
+        .button_update {
+            display: none;
+            background-color: cornflowerblue;
+        }
+
+        #old_password_label {
+            display: none;
+        }
+
+        #old_password {
+            display: none;
+        }
+
+
+        /* Extra styles for the cancel button */
+        .cancelbtn {
+            width: auto;
+            padding: 10px 18px;
+            background-color: #f44336;
+        }
+
+        /* Center the image and position the close button */
+        .imgcontainer {
+            text-align: center;
+            margin: 24px 0 12px 0;
+            position: relative;
+        }
+
+        #container {
+            display: none;
+        }
+
+        .container {
+            padding: 16px;
+        }
+
+        span.psw {
+            float: right;
+            padding-top: 16px;
+        }
+
+        /* The Modal (background) */
+        .modal {
+            display: block; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+
+        /* Modal Content/Box */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto 15% auto; /* 5% from the top, 15% from the bottom and centered */
+            border: 1px solid #888;
+            width: 30%; /* Could be more or less, depending on screen size */
+        }
+
+        .login_error {
+            display: none;
+            color: red;
+        }
+
+        /* The Close Button (x) */
+        .close {
+            position: absolute;
+            right: 25px;
+            top: 0;
+            color: #000;
+            font-size: 35px;
+            font-weight: bold;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: red;
+                cursor: pointer;
+            }
+
+        /* Add Zoom Animation */
+        .animate {
+            -webkit-animation: animatezoom 0.6s;
+            animation: animatezoom 0.6s
+        }
+
+        @-webkit-keyframes animatezoom {
+            from {
+                -webkit-transform: scale(0)
+            }
+
+            to {
+                -webkit-transform: scale(1)
+            }
+        }
+
+        @keyframes animatezoom {
+            from {
+                transform: scale(0)
+            }
+
+            to {
+                transform: scale(1)
+            }
+        }
+
+        /* Change styles for span and cancel button on extra small screens */
+        @media screen and (max-width: 300px) {
+            span.psw {
+                display: block;
+                float: none;
+            }
+
+            .cancelbtn {
+                width: 100%;
+            }
+        }
+
+        w3-display-topleft {
+            position: absolute;
+            left: 0;
+            top: 0
+        }
+
+        .w3-display-topright {
+            position: absolute;
+            right: 0;
+            top: 0
+        }
+
+        .w3-display-bottomleft {
+            position: absolute;
+            left: 0;
+            bottom: 0
+        }
+
+        .w3-display-container {
+            position: relative
+        }
+
+        .w3-display-bottomright {
+            position: absolute;
+            right: 0;
+            bottom: 0
+        }
+
+
+        .w3-display-middle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            -ms-transform: translate(-50%,-50%)
+        }
+
+        .w3-display-left {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(0%,-50%);
+            -ms-transform: translate(-0%,-50%)
+        }
+
+        .w3-display-right {
+            position: absolute;
+            top: 50%;
+            right: 0%;
+            transform: translate(0%,-50%);
+            -ms-transform: translate(0%,-50%)
+        }
+
+        .w3-display-topmiddle {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translate(-50%,0%);
+            -ms-transform: translate(-50%,0%)
+        }
+
+        .w3-display-bottommiddle {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translate(-50%,0%);
+            -ms-transform: translate(-50%,0%)
+        }
+    </style>
+
+</head>
+<body onload="main()">
+    <div id="container">
+        <label for="stationId">Choose a station:</label>
+        <select id="stationId" onchange="display_station_content()">
+            <option id="default_option" value="-1" selected="selected">choose station</option>
+        </select>
+        <div>
+            <button value="add new station" onclick="textarea_for_new_station()">add new station</button>
+        </div>
+        <h2>In Database</h2>
+        <div id="station_content">
+        </div>
+        <div>
+            <button class=" w3-display-topmiddle" onclick="update_password_step1()">update password</button>
+        </div>
+    </div>
+    <div id="id01" class="modal">
+
+        <div class="modal-content animate">
+
+
+            <div class="container">
+
+                <label for="uname"><b>Username</b></label>
+                <input type="text" pattern="[A-Za-z]{1,}" placeholder="Enter Username" name="uname" class="user_name_password" required>
+
+                <label for="psw"><b>Password</b></label>
+                <input type="password" pattern="[A-Za-z0-9]{1,}" placeholder="Enter Password" name="psw" class="user_name_password" required>
+               
+
+                <button class="w3_style" id="button_login" onclick="user_login()">Login</button>
+                <form id="form_id" onsubmit="update_password_step2()">
+                     <label for="opsw" id="old_password_label"><b>old Password</b></label>
+
+                <input type="password" pattern="[A-Za-z0-9]{1,}" id="old_password" placeholder="Enter old Password" name="opsw" required>
+
+                    <input type="submit" class="w3_style button_update">
+                </form>
+                <br />
+                <span class="login_error">The user name or the password are incorrenct</span>
+
+            </div>
+
+        </div>
+    </div>
+
+
+</body>
+
+</html>
